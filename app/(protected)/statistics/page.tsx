@@ -2,9 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-const supabase = await createClient();
-
 export default async function Estatisticas() {
+  const supabase = await createClient();
   const { data: goals } = await supabase
     .from("match_events")
     .select("player_id, players(name)")

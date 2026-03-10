@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { calculateStandings } from "@/lib/standings";
 
 export const dynamic = "force-dynamic";
 
-const supabase = await createClient();
-import { calculateStandings } from "@/lib/standings";
-
 export default async function Dashboard() {
+  const supabase = await createClient();
+
   const { data: matches } = await supabase
     .from("matches")
     .select("*")

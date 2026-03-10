@@ -3,9 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-const supabase = await createClient();
-
 export default async function Jogos() {
+  const supabase = await createClient();
   const { data: matches } = await supabase
     .from("matches")
     .select("*, home:home_team_id(name), away:away_team_id(name)");
