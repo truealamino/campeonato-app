@@ -2,6 +2,8 @@ import { getUserRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function ChampionshipsPage() {
   const role = await getUserRole();
   const supabase = await createClient();

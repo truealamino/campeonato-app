@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PlayerList } from "@/components/PlayerList";
 import CreatePlayerModal from "@/components/CreatePlayerModal";
 
+export const dynamic = "force-dynamic";
+
 export default async function JogadoresPage() {
   const supabase = await createClient();
 

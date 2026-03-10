@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import EditPlayerForm from "./EditPlayerForm";
 import PlayerChampionshipList from "./PlayerChampionshipList";
 
+export const dynamic = "force-dynamic";
+
 type Registration = {
   id: string;
   final_overall: number | null;

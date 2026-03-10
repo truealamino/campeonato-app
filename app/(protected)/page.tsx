@@ -1,4 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
+
 const supabase = await createClient();
 import { calculateStandings } from "@/lib/standings";
 

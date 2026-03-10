@@ -4,6 +4,8 @@ import TeamsSection from "./TeamsSection";
 import PlayersSection from "./PlayersSection";
 import { getUserRole } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function ChampionshipDetails({
   params,
 }: {
