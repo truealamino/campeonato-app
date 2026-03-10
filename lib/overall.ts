@@ -27,7 +27,7 @@ export async function recalculateOverall(registrationId: string) {
   const autoNorm = autoAvg / 5;
   const orgNorm = orgAvg / 5;
 
-  const score = autoNorm * 0.3 + orgNorm * 0.7;
+  const score = autoNorm * 0.2 + orgNorm * 0.8;
 
   const overall = Math.round(77 + score * 18);
 
