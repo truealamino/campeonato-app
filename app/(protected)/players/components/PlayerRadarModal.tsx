@@ -5,9 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import PlayerRadar from "@/components/PlayerRadar";
 import { calculateRadar } from "@/lib/calculateRadar";
 import { recalculateOverall } from "@/lib/overall";
+import { useLoading } from "@/components/ui/loading-provider";
+import { skill_labels } from "@/lib/skills";
 
 type Evaluation = {
   skill: string;
+  label: string;
   value: number;
 };
 
@@ -31,7 +34,9 @@ export default function PlayerRadarModal({
   const [currentOverall, setCurrentOverall] = useState<number | undefined>(
     overall,
   );
-  const [loading, setLoading] = useState(false);
+  const [recalculatingOverall, setRecalculatingOverall] = useState(false);
+
+  const { startLoading, stopLoading } = useLoading();
 
   useEffect(() => {
     async function load() {
@@ -41,7 +46,12 @@ export default function PlayerRadarModal({
         .eq("registration_id", registrationId);
 
       const radarData = calculateRadar(evaluations || [], position);
-      setData(radarData);
+      const formattedData = radarData.map((item) => ({
+        ...item,
+        label:
+          skill_labels[item.skill as keyof typeof skill_labels] || item.skill,
+      }));
+      setData(formattedData);
 
       const { data: registration } = await supabase
         .from("championship_registrations")
@@ -56,7 +66,8 @@ export default function PlayerRadarModal({
   }, [registrationId, position]);
 
   async function handleRecalculate() {
-    setLoading(true);
+    startLoading();
+    setRecalculatingOverall(true);
 
     await recalculateOverall(registrationId);
 
@@ -68,7 +79,8 @@ export default function PlayerRadarModal({
 
     setCurrentOverall(data?.final_overall);
 
-    setLoading(false);
+    setRecalculatingOverall(false);
+    stopLoading();
   }
 
   return (
@@ -115,15 +127,15 @@ export default function PlayerRadarModal({
         <div className="mt-6 flex justify-between">
           <button
             onClick={handleRecalculate}
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded disabled:opacity-50"
+            disabled={recalculatingOverall}
+            className="bg-blue-600 hover:bg-blue-400 cursor-pointer px-4 py-2 rounded-lg transition disabled:opacity-50"
           >
-            {loading ? "Calculando..." : "Recalcular Overall"}
+            {recalculatingOverall ? "Calculando..." : "Recalcular Overall"}
           </button>
 
           <button
             onClick={onClose}
-            className="bg-zinc-700 hover:bg-zinc-600 px-4 py-2 rounded"
+            className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg transition"
           >
             Fechar
           </button>

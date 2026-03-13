@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { calculateOverall, Evaluation, SkillType } from "./OverallCalculator";
+import { toast } from "sonner";
 
 type Position = "Zagueiro" | "Meia" | "Atacante" | "Goleiro";
 
@@ -64,9 +65,7 @@ export default function PlayerForm() {
       evaluations,
     };
 
-    console.log("Jogador salvo:", player);
-
-    alert("Jogador salvo! Veja console.");
+    toast.success("Jogador salvo com sucesso");
   }
 
   const skillsToShow = position === "Goleiro" ? goleiro : linha;

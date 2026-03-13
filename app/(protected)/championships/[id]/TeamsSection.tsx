@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { useLoading } from "@/components/ui/loading-provider";
+import { toast } from "sonner";
 
 export default function TeamsSection({
   championshipId,
@@ -16,7 +18,11 @@ export default function TeamsSection({
   const router = useRouter();
   const [allTeams, setAllTeams] = useState<{ id: string; name: string }[]>([]);
   const [selectedTeam, setSelectedTeam] = useState("");
+  const [confirmRemove, setConfirmRemove] = useState<{
+    championshipTeamId: string;
+  } | null>(null);
   const supabase = createClient();
+  const { startLoading, stopLoading } = useLoading();
   // 🔎 Carrega times que ainda NÃO estão nesse campeonato
   useEffect(() => {
     async function loadTeams() {
@@ -40,25 +46,48 @@ export default function TeamsSection({
 
   // ➕ Adicionar time ao campeonato
   async function addTeam() {
-    if (!selectedTeam) return;
+    startLoading();
+    if (!selectedTeam) {
+      toast.error("Selecione um time");
+      stopLoading();
+      return;
+    }
 
-    await supabase.from("championship_teams").insert({
+    const { error } = await supabase.from("championship_teams").insert({
       championship_id: championshipId,
       team_id: selectedTeam,
     });
 
+    if (error) {
+      toast.error("Erro ao adicionar time");
+      console.error(error);
+      stopLoading();
+      return;
+    }
+
     setSelectedTeam("");
     router.refresh();
+    stopLoading();
   }
 
   // ❌ Remover time do campeonato
   async function removeTeam(championshipTeamId: string) {
-    await supabase
+    startLoading();
+    const { error } = await supabase
       .from("championship_teams")
       .delete()
       .eq("id", championshipTeamId);
 
+    if (error) {
+      toast.error("Erro ao remover time");
+      console.error(error);
+      stopLoading();
+      return;
+    }
+
+    toast.success("Time removido com sucesso");
     router.refresh();
+    stopLoading();
   }
 
   return (
@@ -82,7 +111,7 @@ export default function TeamsSection({
         {role === "admin" && (
           <button
             onClick={addTeam}
-            className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition"
+            className="bg-green-600 hover:bg-green-400 cursor-pointer px-4 py-2 rounded-lg transition"
           >
             Adicionar
           </button>
@@ -103,8 +132,10 @@ export default function TeamsSection({
 
             {role === "admin" && (
               <button
-                onClick={() => removeTeam(team.id)}
-                className="bg-red-600 hover:bg-red-500 px-4 py-1.5 rounded-lg text-sm transition"
+                onClick={() =>
+                  setConfirmRemove({ championshipTeamId: team.id })
+                }
+                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition"
               >
                 Remover
               </button>
@@ -112,6 +143,33 @@ export default function TeamsSection({
           </div>
         ))}
       </div>
+      {confirmRemove && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 rounded-2xl p-6 w-[380px] space-y-4">
+            <h3 className="text-lg font-semibold">Confirmar remoção</h3>
+
+            <p className="text-sm text-zinc-400">
+              Tem certeza que deseja remover este time do campeonato?
+            </p>
+
+            <div className="flex justify-end gap-3 pt-3">
+              <button
+                onClick={() => setConfirmRemove(null)}
+                className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => removeTeam(confirmRemove.championshipTeamId)}
+                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition"
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import StarRating from "../../players/[id]/subscribe/StarRating";
 import { recalculateOverall } from "@/lib/overall";
+import { useLoading } from "@/components/ui/loading-provider";
+import { toast } from "sonner";
+import { skill_labels } from "@/lib/skills";
 
 type Registration = {
   id: string;
@@ -46,6 +49,8 @@ export default function EvaluateModal({
   const supabase = createClient();
   const player = registration.players;
 
+  const { startLoading, stopLoading } = useLoading();
+
   const [photo, setPhoto] = useState<string | null>(null);
 
   const skills =
@@ -70,12 +75,14 @@ export default function EvaluateModal({
   }, [registration.id]);
 
   async function handleSave() {
+    startLoading();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
-      alert("Usuário não autenticado");
+      toast.error("Usuário não autenticado");
+      stopLoading();
       return;
     }
 
@@ -91,13 +98,16 @@ export default function EvaluateModal({
     await recalculateOverall(registration.id);
 
     if (error) {
-      alert("Erro ao salvar avaliação");
+      toast.error("Erro ao salvar avaliação");
       console.error(error);
+      stopLoading();
       return;
     }
 
+    toast.success("Avaliação salva com sucesso");
     onEvaluated(registration.id);
     onClose();
+    stopLoading();
   }
 
   return (
@@ -126,7 +136,9 @@ export default function EvaluateModal({
 
         {skills.map((skill) => (
           <div key={skill} className="grid grid-cols-2 gap-4 items-center">
-            <span className="capitalize">{skill}</span>
+            <span className="capitalize">
+              {skill_labels[skill as keyof typeof skill_labels]}
+            </span>
 
             <StarRating
               value={ratings[skill]}
@@ -143,14 +155,14 @@ export default function EvaluateModal({
         <div className="flex justify-end gap-3 pt-4">
           <button
             onClick={onClose}
-            className="bg-zinc-700 px-4 py-2 rounded-lg"
+            className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg transition"
           >
             Cancelar
           </button>
 
           <button
             onClick={handleSave}
-            className="bg-green-600 px-4 py-2 rounded-lg"
+            className="bg-green-600 hover:bg-green-400 cursor-pointer px-4 py-2 rounded-lg transition"
           >
             Salvar avaliação
           </button>

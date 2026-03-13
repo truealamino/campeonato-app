@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import EvaluateModal from "../../players/components/EvaluateModal";
 import PlayerRadarModal from "../../players/components/PlayerRadarModal";
+import { toast } from "sonner";
+import { useLoading } from "@/components/ui/loading-provider";
 
 type Registration = {
   id: string;
@@ -35,8 +37,12 @@ export default function PlayersSection({
     useState<Registration | null>(null);
 
   const [radarPlayer, setRadarPlayer] = useState<Registration | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<Registration | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   const [userId, setUserId] = useState<string | null>(null);
+
+  const { startLoading, stopLoading } = useLoading();
 
   const [evaluatedRegistrations, setEvaluatedRegistrations] = useState<
     string[]
@@ -53,16 +59,33 @@ export default function PlayersSection({
   const [progress, setProgress] = useState(0);
 
   async function removePlayer(registrationId: string) {
-    await supabase
-      .from("championship_registrations")
-      .delete()
-      .eq("id", registrationId);
+    try {
+      startLoading();
+      setRemoving(true);
 
-    router.refresh();
+      const { error } = await supabase
+        .from("championship_registrations")
+        .delete()
+        .eq("id", registrationId);
+
+      if (error) throw error;
+
+      toast.success("Jogador removido com sucesso");
+
+      setConfirmRemove(null);
+      router.refresh();
+    } catch (err) {
+      toast.error("Erro ao remover jogador");
+      console.error(err);
+    } finally {
+      setRemoving(false);
+      stopLoading();
+    }
   }
 
   // IMPORTAR CSV
   async function handleImport(file: File) {
+    startLoading();
     setImporting(true);
     setProgress(10);
 
@@ -90,6 +113,8 @@ export default function PlayersSection({
 
       setTimeout(() => setProgress(0), 1000);
     }, 500);
+
+    stopLoading();
   }
 
   // pegar usuário logado
@@ -138,6 +163,10 @@ export default function PlayersSection({
     );
   }
 
+  filteredRegistrations = [...filteredRegistrations].sort((a, b) =>
+    (a.players?.name || "").localeCompare(b.players?.name || ""),
+  );
+
   // paginação
   const totalPages = Math.ceil(filteredRegistrations.length / playersPerPage);
 
@@ -159,7 +188,7 @@ export default function PlayersSection({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={importing}
-              className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+              className="bg-green-600 hover:bg-green-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition disabled:opacity-50"
             >
               {importing ? "Importando..." : "Importar CSV"}
             </button>
@@ -240,7 +269,7 @@ export default function PlayersSection({
                 {evaluatedRegistrations.includes(reg.id) && (
                   <button
                     onClick={() => setRadarPlayer(reg)}
-                    className="bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded-lg text-sm transition"
+                    className="bg-blue-600 hover:bg-blue-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition"
                   >
                     Análise
                   </button>
@@ -253,7 +282,7 @@ export default function PlayersSection({
                 ) : (
                   <button
                     onClick={() => setSelectedRegistration(reg)}
-                    className="bg-zinc-700 hover:bg-zinc-600 px-4 py-1.5 rounded-lg text-sm transition"
+                    className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition"
                   >
                     Avaliar
                   </button>
@@ -261,8 +290,8 @@ export default function PlayersSection({
 
                 {role === "admin" && (
                   <button
-                    onClick={() => removePlayer(reg.id)}
-                    className="bg-red-600 hover:bg-red-500 px-4 py-1.5 rounded-lg text-sm transition"
+                    onClick={() => setConfirmRemove(reg)}
+                    className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition"
                   >
                     Remover
                   </button>
@@ -279,7 +308,7 @@ export default function PlayersSection({
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="bg-zinc-800 px-3 py-1 rounded disabled:opacity-50"
+            className="bg-zinc-800 hover:bg-zinc-400 cursor-pointer px-3 py-1.5 rounded-lg text-sm transition"
           >
             ←
           </button>
@@ -291,10 +320,39 @@ export default function PlayersSection({
           <button
             disabled={page === totalPages}
             onClick={() => setPage(page + 1)}
-            className="bg-zinc-800 px-3 py-1 rounded disabled:opacity-50"
+            className="bg-zinc-800 hover:bg-zinc-400 cursor-pointer px-3 py-1.5 rounded-lg text-sm transition"
           >
             →
           </button>
+        </div>
+      )}
+
+      {confirmRemove && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 rounded-2xl p-6 w-[380px] space-y-4">
+            <h3 className="text-lg font-semibold">Confirmar remoção</h3>
+
+            <p className="text-sm text-zinc-400">
+              Tem certeza que deseja remover este jogador da inscrição?
+            </p>
+
+            <div className="flex justify-end gap-3 pt-3">
+              <button
+                onClick={() => setConfirmRemove(null)}
+                className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                disabled={removing}
+                onClick={() => removePlayer(confirmRemove.id)}
+                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition disabled:opacity-50"
+              >
+                {removing ? "Removendo..." : "Remover"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

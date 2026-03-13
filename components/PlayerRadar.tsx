@@ -10,6 +10,7 @@ import {
 
 type Evaluation = {
   skill: string;
+  label: string;
   value: number;
 };
 
@@ -24,7 +25,7 @@ export default function PlayerRadar({ data }: { data: Evaluation[] }) {
       data={data}
     >
       <PolarGrid stroke="#444" />
-      <PolarAngleAxis dataKey="skill" />
+      <PolarAngleAxis dataKey="label" />
       <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
       <Radar
         dataKey="value"

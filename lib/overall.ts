@@ -27,9 +27,9 @@ export async function recalculateOverall(registrationId: string) {
   const autoNorm = autoAvg / 5;
   const orgNorm = orgAvg / 5;
 
-  const score = autoNorm * 0.2 + orgNorm * 0.8;
+  const score = autoNorm * 0.05 + orgNorm * 0.95;
 
-  const overall = Math.round(77 + score * 18);
+  const overall = Math.round(76 + score * 18);
 
   await supabase
     .from("championship_registrations")

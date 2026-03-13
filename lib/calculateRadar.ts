@@ -39,7 +39,7 @@ export function calculateRadar(evaluations: Evaluation[], position: string) {
       skillRatings.reduce((sum, v) => sum + v, 0) / skillRatings.length;
 
     return {
-      skill: skill.charAt(0).toUpperCase() + skill.slice(1),
+      skill,
       value: Math.round((avg / 5) * 100),
     };
   });

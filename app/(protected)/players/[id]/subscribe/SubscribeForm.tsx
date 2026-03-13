@@ -41,18 +41,6 @@ export default function InscricaoForm({
     Object.fromEntries(skills.map((s) => [s, 1])),
   );
 
-  function calculateOverall() {
-    const values = skills.map((skill) => {
-      const self = selfRatings[skill];
-
-      return self;
-    });
-
-    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-
-    return Number(avg.toFixed(2));
-  }
-
   async function handleSubmit() {
     if (!championshipId) {
       alert("Selecione o campeonato");
