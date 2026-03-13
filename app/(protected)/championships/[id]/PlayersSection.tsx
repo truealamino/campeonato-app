@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import EvaluateModal from "../../players/components/EvaluateModal";
 import PlayerRadarModal from "../../players/components/PlayerRadarModal";
 
@@ -29,6 +29,7 @@ export default function PlayersSection({
 }) {
   const router = useRouter();
   const supabase = createClient();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [selectedRegistration, setSelectedRegistration] =
     useState<Registration | null>(null);
@@ -48,6 +49,9 @@ export default function PlayersSection({
   const [page, setPage] = useState(1);
   const playersPerPage = 5;
 
+  const [importing, setImporting] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   async function removePlayer(registrationId: string) {
     await supabase
       .from("championship_registrations")
@@ -55,6 +59,37 @@ export default function PlayersSection({
       .eq("id", registrationId);
 
     router.refresh();
+  }
+
+  // IMPORTAR CSV
+  async function handleImport(file: File) {
+    setImporting(true);
+    setProgress(10);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("championshipId", championshipId);
+
+    setProgress(30);
+
+    await fetch("/api/import-players", {
+      method: "POST",
+      body: formData,
+    });
+
+    setProgress(90);
+
+    setTimeout(() => {
+      setProgress(100);
+      setImporting(false);
+      router.refresh();
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      setTimeout(() => setProgress(0), 1000);
+    }, 500);
   }
 
   // pegar usuário logado
@@ -117,6 +152,46 @@ export default function PlayersSection({
     <div className="bg-zinc-900 p-6 rounded-2xl space-y-6">
       <h2 className="text-2xl font-bold">Jogadores Inscritos</h2>
 
+      {/* IMPORTAÇÃO CSV */}
+      {role === "admin" && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+            >
+              {importing ? "Importando..." : "Importar CSV"}
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImport(file);
+              }}
+            />
+
+            <span className="text-xs text-zinc-400">
+              Importar inscrições em massa
+            </span>
+          </div>
+
+          {/* BARRA DE PROGRESSO */}
+          {importing && (
+            <div className="w-full bg-zinc-800 rounded-lg h-3 overflow-hidden">
+              <div
+                className="bg-green-500 h-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* filtro */}
       <div className="flex items-center gap-3">
         <span className="text-sm text-zinc-400">Avaliado:</span>
@@ -147,7 +222,6 @@ export default function PlayersSection({
               key={reg.id}
               className="flex items-center justify-between bg-zinc-800 px-4 py-3 rounded-xl"
             >
-              {/* info */}
               <div>
                 {player ? (
                   <>
@@ -162,7 +236,6 @@ export default function PlayersSection({
                 )}
               </div>
 
-              {/* botões */}
               <div className="flex gap-3">
                 {evaluatedRegistrations.includes(reg.id) && (
                   <button

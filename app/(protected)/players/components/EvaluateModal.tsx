@@ -15,6 +15,7 @@ type Registration = {
       }
     | undefined;
 };
+
 const skillsLinha = [
   "visao",
   "controle",
@@ -43,14 +44,30 @@ export default function EvaluateModal({
   onEvaluated: (registrationId: string) => void;
 }) {
   const supabase = createClient();
-
   const player = registration.players;
 
-  const skills = player?.preferred_position === "Gol" ? skillsGol : skillsLinha;
+  const [photo, setPhoto] = useState<string | null>(null);
+
+  const skills =
+    player?.preferred_position === "Goleiro" ? skillsGol : skillsLinha;
 
   const [ratings, setRatings] = useState(
     Object.fromEntries(skills.map((s) => [s, 1])),
   );
+
+  useEffect(() => {
+    async function loadPhoto() {
+      const { data } = await supabase
+        .from("championship_registrations")
+        .select("profile_photo_link")
+        .eq("id", registration.id)
+        .single();
+
+      setPhoto(data?.profile_photo_link ?? null);
+    }
+
+    loadPhoto();
+  }, [registration.id]);
 
   async function handleSave() {
     const {
@@ -79,16 +96,33 @@ export default function EvaluateModal({
       return;
     }
 
-    if (onEvaluated) {
-      onEvaluated(registration.id);
-    }
+    onEvaluated(registration.id);
     onClose();
   }
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 p-8 rounded-2xl w-[500px] space-y-6">
-        <h2 className="text-2xl font-bold">Avaliar {player?.name}</h2>
+      <div className="bg-zinc-900 p-8 rounded-2xl w-[520px] space-y-6">
+        {/* FOTO */}
+        <div className="flex flex-col items-center gap-4">
+          {photo ? (
+            <div className="w-32 h-32 rounded-full bg-zinc-800 border-4 border-zinc-700 flex items-center justify-center overflow-hidden">
+              <img
+                src={photo}
+                alt="Foto jogador"
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          ) : (
+            <div className="w-32 h-32 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400">
+              Sem foto
+            </div>
+          )}
+
+          <h2 className="text-3xl font-bold text-center">
+            Avaliar {player?.name}
+          </h2>
+        </div>
 
         {skills.map((skill) => (
           <div key={skill} className="grid grid-cols-2 gap-4 items-center">

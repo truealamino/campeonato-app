@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { calculateOverall, Evaluation, SkillType } from "./OverallCalculator";
 
-type Position = "ZAG" | "MEI" | "ATA" | "GOL";
+type Position = "Zagueiro" | "Meia" | "Atacante" | "Goleiro";
 
 const linha = [
   "visao",
@@ -25,7 +25,7 @@ const goleiro = [
 
 export default function PlayerForm() {
   const [name, setName] = useState("");
-  const [position, setPosition] = useState<Position>("MEI");
+  const [position, setPosition] = useState<Position>("Meia");
 
   const initialEvaluations = Object.fromEntries(
     [...linha, ...goleiro].map((skill) => [
@@ -69,7 +69,7 @@ export default function PlayerForm() {
     alert("Jogador salvo! Veja console.");
   }
 
-  const skillsToShow = position === "GOL" ? goleiro : linha;
+  const skillsToShow = position === "Goleiro" ? goleiro : linha;
 
   return (
     <form
@@ -92,10 +92,10 @@ export default function PlayerForm() {
           value={position}
           onChange={(e) => setPosition(e.target.value as Position)}
         >
-          <option value="ZAG">Zagueiro</option>
-          <option value="MEI">Meia</option>
-          <option value="ATA">Atacante</option>
-          <option value="GOL">Goleiro</option>
+          <option value="Zagueiro">Zagueiro</option>
+          <option value="Meia">Meia</option>
+          <option value="Atacante">Atacante</option>
+          <option value="Goleiro">Goleiro</option>
         </select>
       </div>
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
-const POSITIONS = ["Gol", "Zag", "Mei", "Ala", "Ata", "Cta"];
+const POSITIONS = ["Goleiro", "Zagueiro", "Meia", "Atacante"];
 
 export function CreatePlayerForm({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();

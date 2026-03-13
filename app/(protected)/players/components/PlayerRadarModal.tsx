@@ -27,6 +27,7 @@ export default function PlayerRadarModal({
   const supabase = createClient();
 
   const [data, setData] = useState<Evaluation[]>([]);
+  const [photo, setPhoto] = useState<string | null>(null);
   const [currentOverall, setCurrentOverall] = useState<number | undefined>(
     overall,
   );
@@ -40,8 +41,15 @@ export default function PlayerRadarModal({
         .eq("registration_id", registrationId);
 
       const radarData = calculateRadar(evaluations || [], position);
-
       setData(radarData);
+
+      const { data: registration } = await supabase
+        .from("championship_registrations")
+        .select("profile_photo_link")
+        .eq("id", registrationId)
+        .single();
+
+      setPhoto(registration?.profile_photo_link ?? null);
     }
 
     load();
@@ -65,12 +73,27 @@ export default function PlayerRadarModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
-      <div className="bg-zinc-900 p-8 rounded-2xl w-[500px]">
+      <div className="bg-zinc-900 p-8 rounded-2xl w-[520px]">
         {/* HEADER */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">{playerName}</h2>
-            <p className="text-zinc-400 mt-1">{position}</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            {photo ? (
+              <div className="w-20 h-20 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center overflow-hidden">
+                <img
+                  src={photo}
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400">
+                Sem foto
+              </div>
+            )}
+
+            <div>
+              <h2 className="text-2xl font-bold">{playerName}</h2>
+              <p className="text-zinc-400">{position}</p>
+            </div>
           </div>
 
           {currentOverall && (
@@ -85,12 +108,10 @@ export default function PlayerRadarModal({
           )}
         </div>
 
-        {/* RADAR */}
         <div className="flex justify-center">
           <PlayerRadar data={data} />
         </div>
 
-        {/* FOOTER */}
         <div className="mt-6 flex justify-between">
           <button
             onClick={handleRecalculate}

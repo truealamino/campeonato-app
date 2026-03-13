@@ -32,7 +32,8 @@ export default function InscricaoForm({
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const skills = player.preferred_position === "Gol" ? skillsGol : skillsLinha;
+  const skills =
+    player.preferred_position === "Goleiro" ? skillsGol : skillsLinha;
 
   const [championshipId, setChampionshipId] = useState("");
 

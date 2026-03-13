@@ -22,7 +22,7 @@ const skillsGol = [
 ];
 
 export function calculateRadar(evaluations: Evaluation[], position: string) {
-  const isGoalkeeper = position?.toLowerCase().includes("gol");
+  const isGoalkeeper = position?.toLowerCase().includes("goleiro");
 
   const skills = isGoalkeeper ? skillsGol : skillsLinha;
 
