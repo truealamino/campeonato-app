@@ -17,9 +17,9 @@ export default async function ProtectedLayout({
 
   return (
     <LoadingProvider>
-      <div className="flex min-h-screen bg-zinc-950 text-white">
+      <div className="flex flex-col md:flex-row min-h-screen bg-zinc-950 text-white">
         <Sidebar role={role} />
-        <main className="flex-1 p-8">{children}</main>
+        <main className="flex-1 p-4 md:p-8">{children}</main>
         <Toaster richColors position="top-right" />
       </div>
     </LoadingProvider>

@@ -2,47 +2,31 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import EvaluateModal from "../../players/components/EvaluateModal";
 import PlayerRadarModal from "../../players/components/PlayerRadarModal";
 import { toast } from "sonner";
 import { useLoading } from "@/components/ui/loading-provider";
-
-type Registration = {
-  id: string;
-  final_overall: number;
-  players:
-    | {
-        id: string;
-        name: string;
-        preferred_position: string;
-      }
-    | undefined;
-};
+import { Registration } from "@/types/registration";
 
 export default function PlayersSection({
-  championshipId,
   registrations,
   role,
 }: {
-  championshipId: string;
   registrations: Registration[];
   role: string;
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const { startLoading, stopLoading } = useLoading();
 
   const [selectedRegistration, setSelectedRegistration] =
     useState<Registration | null>(null);
 
   const [radarPlayer, setRadarPlayer] = useState<Registration | null>(null);
+
   const [confirmRemove, setConfirmRemove] = useState<Registration | null>(null);
-  const [removing, setRemoving] = useState(false);
-
-  const [userId, setUserId] = useState<string | null>(null);
-
-  const { startLoading, stopLoading } = useLoading();
 
   const [evaluatedRegistrations, setEvaluatedRegistrations] = useState<
     string[]
@@ -53,71 +37,11 @@ export default function PlayersSection({
   );
 
   const [page, setPage] = useState(1);
+
   const playersPerPage = 5;
 
-  const [importing, setImporting] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  async function removePlayer(registrationId: string) {
-    try {
-      startLoading();
-      setRemoving(true);
-
-      const { error } = await supabase
-        .from("championship_registrations")
-        .delete()
-        .eq("id", registrationId);
-
-      if (error) throw error;
-
-      toast.success("Jogador removido com sucesso");
-
-      setConfirmRemove(null);
-      router.refresh();
-    } catch (err) {
-      toast.error("Erro ao remover jogador");
-      console.error(err);
-    } finally {
-      setRemoving(false);
-      stopLoading();
-    }
-  }
-
-  // IMPORTAR CSV
-  async function handleImport(file: File) {
-    startLoading();
-    setImporting(true);
-    setProgress(10);
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("championshipId", championshipId);
-
-    setProgress(30);
-
-    await fetch("/api/import-players", {
-      method: "POST",
-      body: formData,
-    });
-
-    setProgress(90);
-
-    setTimeout(() => {
-      setProgress(100);
-      setImporting(false);
-      router.refresh();
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      setTimeout(() => setProgress(0), 1000);
-    }, 500);
-
-    stopLoading();
-  }
-
-  // pegar usuário logado
   useEffect(() => {
     async function loadUser() {
       const {
@@ -130,7 +54,6 @@ export default function PlayersSection({
     loadUser();
   }, []);
 
-  // carregar avaliações feitas por ele
   useEffect(() => {
     async function loadEvaluations() {
       if (!userId) return;
@@ -148,7 +71,6 @@ export default function PlayersSection({
     loadEvaluations();
   }, [userId]);
 
-  // aplicar filtro
   let filteredRegistrations = registrations;
 
   if (filter === "evaluated") {
@@ -163,11 +85,6 @@ export default function PlayersSection({
     );
   }
 
-  filteredRegistrations = [...filteredRegistrations].sort((a, b) =>
-    (a.players?.name || "").localeCompare(b.players?.name || ""),
-  );
-
-  // paginação
   const totalPages = Math.ceil(filteredRegistrations.length / playersPerPage);
 
   const startIndex = (page - 1) * playersPerPage;
@@ -177,52 +94,35 @@ export default function PlayersSection({
     startIndex + playersPerPage,
   );
 
+  async function removePlayer(registrationId: string) {
+    startLoading();
+
+    const { error } = await supabase
+      .from("championship_registrations")
+      .delete()
+      .eq("id", registrationId);
+
+    if (error) {
+      toast.error("Erro ao remover jogador");
+      stopLoading();
+      return;
+    }
+
+    toast.success("Jogador removido");
+
+    setConfirmRemove(null);
+
+    router.refresh();
+
+    stopLoading();
+  }
+
   return (
-    <div className="bg-zinc-900 p-6 rounded-2xl space-y-6">
-      <h2 className="text-2xl font-bold">Jogadores Inscritos</h2>
+    <div className="bg-zinc-900 p-4 md:p-6 rounded-2xl space-y-6">
+      <h2 className="text-xl md:text-2xl font-bold">Jogadores Inscritos</h2>
 
-      {/* IMPORTAÇÃO CSV */}
-      {role === "admin" && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={importing}
-              className="bg-green-600 hover:bg-green-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition disabled:opacity-50"
-            >
-              {importing ? "Importando..." : "Importar CSV"}
-            </button>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleImport(file);
-              }}
-            />
-
-            <span className="text-xs text-zinc-400">
-              Importar inscrições em massa
-            </span>
-          </div>
-
-          {/* BARRA DE PROGRESSO */}
-          {importing && (
-            <div className="w-full bg-zinc-800 rounded-lg h-3 overflow-hidden">
-              <div
-                className="bg-green-500 h-full transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* filtro */}
-      <div className="flex items-center gap-3">
+      {/* FILTER */}
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
         <span className="text-sm text-zinc-400">Avaliado:</span>
 
         <select
@@ -230,7 +130,7 @@ export default function PlayersSection({
           onChange={(e) =>
             setFilter(e.target.value as "all" | "evaluated" | "not_evaluated")
           }
-          className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-sm"
+          className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-sm w-full md:w-auto"
         >
           <option value="all">Todos</option>
           <option value="evaluated">Sim</option>
@@ -238,10 +138,7 @@ export default function PlayersSection({
         </select>
       </div>
 
-      {paginatedRegistrations.length === 0 && (
-        <p className="text-zinc-400">Nenhum jogador encontrado.</p>
-      )}
-
+      {/* LIST */}
       <div className="space-y-3">
         {paginatedRegistrations.map((reg) => {
           const player = reg.players;
@@ -249,40 +146,30 @@ export default function PlayersSection({
           return (
             <div
               key={reg.id}
-              className="flex items-center justify-between bg-zinc-800 px-4 py-3 rounded-xl"
+              className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-zinc-800 px-4 py-3 rounded-xl"
             >
               <div>
-                {player ? (
-                  <>
-                    <p className="font-semibold">{player.name}</p>
+                <p className="font-semibold">{player?.name}</p>
 
-                    <p className="text-sm text-zinc-400">
-                      {player.preferred_position}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-zinc-500">Jogador não encontrado</p>
-                )}
+                <p className="text-sm text-zinc-400">
+                  {player?.preferred_position}
+                </p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2">
                 {evaluatedRegistrations.includes(reg.id) && (
                   <button
                     onClick={() => setRadarPlayer(reg)}
-                    className="bg-blue-600 hover:bg-blue-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition"
+                    className="bg-blue-600 hover:bg-blue-400 px-4 py-1.5 rounded-lg text-sm"
                   >
                     Análise
                   </button>
                 )}
 
-                {evaluatedRegistrations.includes(reg.id) ? (
-                  <span className="text-green-400 text-sm font-semibold">
-                    Avaliado
-                  </span>
-                ) : (
+                {!evaluatedRegistrations.includes(reg.id) && (
                   <button
                     onClick={() => setSelectedRegistration(reg)}
-                    className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition"
+                    className="bg-zinc-700 hover:bg-zinc-400 px-4 py-1.5 rounded-lg text-sm"
                   >
                     Avaliar
                   </button>
@@ -291,7 +178,7 @@ export default function PlayersSection({
                 {role === "admin" && (
                   <button
                     onClick={() => setConfirmRemove(reg)}
-                    className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition"
+                    className="bg-red-600 hover:bg-red-400 px-4 py-1.5 rounded-lg text-sm"
                   >
                     Remover
                   </button>
@@ -302,13 +189,13 @@ export default function PlayersSection({
         })}
       </div>
 
-      {/* paginação */}
+      {/* PAGINATION */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-4">
+        <div className="flex flex-wrap justify-center items-center gap-3">
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="bg-zinc-800 hover:bg-zinc-400 cursor-pointer px-3 py-1.5 rounded-lg text-sm transition"
+            className="bg-zinc-800 hover:bg-zinc-400 px-3 py-1.5 rounded-lg text-sm"
           >
             ←
           </button>
@@ -320,36 +207,36 @@ export default function PlayersSection({
           <button
             disabled={page === totalPages}
             onClick={() => setPage(page + 1)}
-            className="bg-zinc-800 hover:bg-zinc-400 cursor-pointer px-3 py-1.5 rounded-lg text-sm transition"
+            className="bg-zinc-800 hover:bg-zinc-400 px-3 py-1.5 rounded-lg text-sm"
           >
             →
           </button>
         </div>
       )}
 
+      {/* REMOVE MODAL */}
       {confirmRemove && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 rounded-2xl p-6 w-[380px] space-y-4">
+          <div className="bg-zinc-900 rounded-2xl p-6 w-full max-w-md mx-4 space-y-4">
             <h3 className="text-lg font-semibold">Confirmar remoção</h3>
 
             <p className="text-sm text-zinc-400">
-              Tem certeza que deseja remover este jogador da inscrição?
+              Tem certeza que deseja remover este jogador?
             </p>
 
-            <div className="flex justify-end gap-3 pt-3">
+            <div className="flex flex-col md:flex-row justify-end gap-3">
               <button
                 onClick={() => setConfirmRemove(null)}
-                className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition"
+                className="bg-zinc-700 hover:bg-zinc-400 px-4 py-2 rounded-lg text-sm w-full md:w-auto"
               >
                 Cancelar
               </button>
 
               <button
-                disabled={removing}
                 onClick={() => removePlayer(confirmRemove.id)}
-                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition disabled:opacity-50"
+                className="bg-red-600 hover:bg-red-400 px-4 py-2 rounded-lg text-sm w-full md:w-auto"
               >
-                {removing ? "Removendo..." : "Remover"}
+                Remover
               </button>
             </div>
           </div>

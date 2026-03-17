@@ -46,11 +46,13 @@ export default function PlayerRadarModal({
         .eq("registration_id", registrationId);
 
       const radarData = calculateRadar(evaluations || [], position);
+
       const formattedData = radarData.map((item) => ({
         ...item,
         label:
           skill_labels[item.skill as keyof typeof skill_labels] || item.skill,
       }));
+
       setData(formattedData);
 
       const { data: registration } = await supabase
@@ -84,35 +86,36 @@ export default function PlayerRadarModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
-      <div className="bg-zinc-900 p-8 rounded-2xl w-[520px]">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-zinc-900 p-6 md:p-8 rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             {photo ? (
-              <div className="w-20 h-20 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center overflow-hidden">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center overflow-hidden">
                 <img
                   src={photo}
                   className="max-w-full max-h-full object-contain"
                 />
               </div>
             ) : (
-              <div className="w-20 h-20 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400 text-xs md:text-sm">
                 Sem foto
               </div>
             )}
 
             <div>
-              <h2 className="text-2xl font-bold">{playerName}</h2>
-              <p className="text-zinc-400">{position}</p>
+              <h2 className="text-lg md:text-2xl font-bold">{playerName}</h2>
+              <p className="text-zinc-400 text-sm md:text-base">{position}</p>
             </div>
           </div>
 
           {currentOverall && (
-            <div className="text-right">
-              <div className="text-4xl font-bold text-blue-400 bg-blue-500/10 px-3 py-1 rounded-lg">
+            <div className="text-left md:text-right">
+              <div className="text-3xl md:text-4xl font-bold text-blue-400 bg-blue-500/10 px-3 py-1 rounded-lg inline-block">
                 {currentOverall}
               </div>
+
               <div className="text-xs text-zinc-400 tracking-wider">
                 OVERALL
               </div>
@@ -120,22 +123,26 @@ export default function PlayerRadarModal({
           )}
         </div>
 
+        {/* RADAR */}
         <div className="flex justify-center">
-          <PlayerRadar data={data} />
+          <div className="w-full max-w-sm md:max-w-md">
+            <PlayerRadar data={data} />
+          </div>
         </div>
 
-        <div className="mt-6 flex justify-between">
+        {/* BUTTONS */}
+        <div className="mt-6 flex flex-col md:flex-row justify-between gap-3">
           <button
             onClick={handleRecalculate}
             disabled={recalculatingOverall}
-            className="bg-blue-600 hover:bg-blue-400 cursor-pointer px-4 py-2 rounded-lg transition disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-400 cursor-pointer px-4 py-2 rounded-lg transition disabled:opacity-50 w-full md:w-auto"
           >
             {recalculatingOverall ? "Calculando..." : "Recalcular Overall"}
           </button>
 
           <button
             onClick={onClose}
-            className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg transition"
+            className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg transition w-full md:w-auto"
           >
             Fechar
           </button>

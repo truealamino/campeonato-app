@@ -46,6 +46,8 @@ export default async function PlayerDetailsPage({
     .eq("player_id", id)
     .returns<Registration[]>();
 
+  console.log(registrations);
+
   const championships =
     registrations?.map((item) => ({
       id: item.championships?.id,

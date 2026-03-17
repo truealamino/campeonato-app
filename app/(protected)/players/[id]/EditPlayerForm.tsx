@@ -3,18 +3,9 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { Player } from "@/types/player";
 
-export default function EditPlayerForm({
-  player,
-}: {
-  player: {
-    id: string;
-    name: string;
-    official_name?: string;
-    preferred_position: string;
-    cpf?: string;
-  };
-}) {
+export default function EditPlayerForm({ player }: { player: Player }) {
   const router = useRouter();
   const supabase = createClient();
 

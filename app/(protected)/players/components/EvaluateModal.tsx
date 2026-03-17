@@ -2,22 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import StarRating from "../../players/[id]/subscribe/StarRating";
+import StarRating from "../[id]/subscribe/StarRating";
 import { recalculateOverall } from "@/lib/overall";
 import { useLoading } from "@/components/ui/loading-provider";
 import { toast } from "sonner";
 import { skill_labels } from "@/lib/skills";
-
-type Registration = {
-  id: string;
-  players:
-    | {
-        id: string;
-        name: string;
-        preferred_position: string;
-      }
-    | undefined;
-};
+import { Registration } from "@/types/registration";
+import { Player } from "@/types/player";
 
 const skillsLinha = [
   "visao",
@@ -47,7 +38,7 @@ export default function EvaluateModal({
   onEvaluated: (registrationId: string) => void;
 }) {
   const supabase = createClient();
-  const player = registration.players;
+  const player = registration.players as Player;
 
   const { startLoading, stopLoading } = useLoading();
 
@@ -76,6 +67,7 @@ export default function EvaluateModal({
 
   async function handleSave() {
     startLoading();
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -105,18 +97,20 @@ export default function EvaluateModal({
     }
 
     toast.success("Avaliação salva com sucesso");
+
     onEvaluated(registration.id);
     onClose();
+
     stopLoading();
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 p-8 rounded-2xl w-[520px] space-y-6">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className="bg-zinc-900 p-6 md:p-8 rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto space-y-6">
         {/* FOTO */}
         <div className="flex flex-col items-center gap-4">
           {photo ? (
-            <div className="w-32 h-32 rounded-full bg-zinc-800 border-4 border-zinc-700 flex items-center justify-center overflow-hidden">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-zinc-800 border-4 border-zinc-700 flex items-center justify-center overflow-hidden">
               <img
                 src={photo}
                 alt="Foto jogador"
@@ -124,45 +118,52 @@ export default function EvaluateModal({
               />
             </div>
           ) : (
-            <div className="w-32 h-32 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400">
               Sem foto
             </div>
           )}
 
-          <h2 className="text-3xl font-bold text-center">
+          <h2 className="text-xl md:text-3xl font-bold text-center">
             Avaliar {player?.name}
           </h2>
         </div>
 
-        {skills.map((skill) => (
-          <div key={skill} className="grid grid-cols-2 gap-4 items-center">
-            <span className="capitalize">
-              {skill_labels[skill as keyof typeof skill_labels]}
-            </span>
+        {/* SKILLS */}
+        <div className="space-y-4">
+          {skills.map((skill) => (
+            <div
+              key={skill}
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+            >
+              <span className="capitalize text-sm md:text-base">
+                {skill_labels[skill as keyof typeof skill_labels]}
+              </span>
 
-            <StarRating
-              value={ratings[skill]}
-              onChange={(value: number) =>
-                setRatings({
-                  ...ratings,
-                  [skill]: value,
-                })
-              }
-            />
-          </div>
-        ))}
+              <StarRating
+                value={ratings[skill]}
+                onChange={(value: number) =>
+                  setRatings({
+                    ...ratings,
+                    [skill]: value,
+                  })
+                }
+              />
+            </div>
+          ))}
+        </div>
 
-        <div className="flex justify-end gap-3 pt-4">
+        {/* BUTTONS */}
+        <div className="flex flex-col md:flex-row justify-end gap-3 pt-4">
           <button
             onClick={onClose}
-            className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg transition"
+            className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg transition w-full md:w-auto"
           >
             Cancelar
           </button>
 
           <button
             onClick={handleSave}
-            className="bg-green-600 hover:bg-green-400 cursor-pointer px-4 py-2 rounded-lg transition"
+            className="bg-green-600 hover:bg-green-400 cursor-pointer px-4 py-2 rounded-lg transition w-full md:w-auto"
           >
             Salvar avaliação
           </button>

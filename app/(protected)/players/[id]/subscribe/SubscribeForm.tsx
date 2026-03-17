@@ -4,6 +4,8 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import StarRating from "./StarRating";
+import { Player } from "@/types/player";
+import { Championship } from "@/types/championship";
 
 const skillsLinha = [
   "visao",
@@ -27,8 +29,8 @@ export default function InscricaoForm({
   player,
   championships,
 }: {
-  player: { id: string; name: string; preferred_position: string };
-  championships: { id: string; name: string }[];
+  player: Player;
+  championships: Championship[];
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -84,7 +86,7 @@ export default function InscricaoForm({
         onChange={(e) => setChampionshipId(e.target.value)}
       >
         <option value="">Selecione o campeonato</option>
-        {championships.map((c: { id: string; name: string }) => (
+        {championships.map((c) => (
           <option key={c.id} value={c.id}>
             {c.name}
           </option>

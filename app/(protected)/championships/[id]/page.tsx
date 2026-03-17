@@ -12,8 +12,10 @@ export default async function ChampionshipDetails({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
   const role = await getUserRole();
   const supabase = await createClient();
+
   const { data: championship } = await supabase
     .from("championships")
     .select("*")
@@ -26,12 +28,12 @@ export default async function ChampionshipDetails({
     .from("championship_teams")
     .select(
       `
-    id,
-    teams (
       id,
-      name
-    )
-  `,
+      teams (
+        id,
+        name
+      )
+    `,
     )
     .eq("championship_id", id)
     .returns<
@@ -54,14 +56,14 @@ export default async function ChampionshipDetails({
     .from("championship_registrations")
     .select(
       `
-    id,
-    final_overall,
-    players!inner (
       id,
-      name,
-      preferred_position
-    )
-  `,
+      final_overall,
+      players!inner (
+        id,
+        name,
+        preferred_position
+      )
+    `,
     )
     .eq("championship_id", id)
     .returns<
@@ -73,17 +75,29 @@ export default async function ChampionshipDetails({
     >();
 
   return (
-    <div className="container mx-auto py-10 space-y-10">
-      <h1 className="text-3xl font-bold">{championship.name}</h1>
+    <div className="container mx-auto px-4 py-6 md:py-10 space-y-8 md:space-y-10">
+      {/* HEADER */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold break-words">
+          {championship.name}
+        </h1>
 
+        {championship.season && (
+          <p className="text-sm text-zinc-400 mt-1">
+            Temporada {championship.season}
+          </p>
+        )}
+      </div>
+
+      {/* TIMES */}
       <TeamsSection
         championshipId={id}
         teams={formattedTeams}
         role={role as string}
       />
 
+      {/* JOGADORES */}
       <PlayersSection
-        championshipId={id}
         registrations={registrations || []}
         role={role as string}
       />

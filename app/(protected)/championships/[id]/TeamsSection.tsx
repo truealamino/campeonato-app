@@ -21,18 +21,15 @@ export default function TeamsSection({
   const [confirmRemove, setConfirmRemove] = useState<{
     championshipTeamId: string;
   } | null>(null);
+
   const supabase = createClient();
   const { startLoading, stopLoading } = useLoading();
-  // 🔎 Carrega times que ainda NÃO estão nesse campeonato
+
   useEffect(() => {
     async function loadTeams() {
-      // busca todos os times
       const { data: all } = await supabase.from("teams").select("id, name");
 
       if (!all) return;
-
-      // filtra os que já estão no campeonato
-      const existingTeamIds = teams.map((t) => t.name);
 
       const available = all.filter(
         (team) => !teams.some((t) => t.name === team.name),
@@ -44,9 +41,9 @@ export default function TeamsSection({
     loadTeams();
   }, [teams]);
 
-  // ➕ Adicionar time ao campeonato
   async function addTeam() {
     startLoading();
+
     if (!selectedTeam) {
       toast.error("Selecione um time");
       stopLoading();
@@ -60,7 +57,6 @@ export default function TeamsSection({
 
     if (error) {
       toast.error("Erro ao adicionar time");
-      console.error(error);
       stopLoading();
       return;
     }
@@ -70,9 +66,9 @@ export default function TeamsSection({
     stopLoading();
   }
 
-  // ❌ Remover time do campeonato
   async function removeTeam(championshipTeamId: string) {
     startLoading();
+
     const { error } = await supabase
       .from("championship_teams")
       .delete()
@@ -80,27 +76,28 @@ export default function TeamsSection({
 
     if (error) {
       toast.error("Erro ao remover time");
-      console.error(error);
       stopLoading();
       return;
     }
 
-    toast.success("Time removido com sucesso");
+    toast.success("Time removido");
     router.refresh();
     stopLoading();
   }
 
   return (
-    <div className="bg-zinc-900 p-6 rounded-2xl space-y-6">
-      <h2 className="text-2xl font-bold">Times</h2>
+    <div className="bg-zinc-900 p-4 md:p-6 rounded-2xl space-y-6">
+      <h2 className="text-xl md:text-2xl font-bold">Times</h2>
 
-      <div className="flex gap-4">
+      {/* ADD TEAM */}
+      <div className="flex flex-col md:flex-row gap-3 md:gap-4">
         <select
           value={selectedTeam}
           onChange={(e) => setSelectedTeam(e.target.value)}
-          className="bg-zinc-800 p-2 rounded"
+          className="bg-zinc-800 p-2 rounded w-full md:w-auto"
         >
           <option value="">Selecione um time</option>
+
           {allTeams.map((team) => (
             <option key={team.id} value={team.id}>
               {team.name}
@@ -111,13 +108,14 @@ export default function TeamsSection({
         {role === "admin" && (
           <button
             onClick={addTeam}
-            className="bg-green-600 hover:bg-green-400 cursor-pointer px-4 py-2 rounded-lg transition"
+            className="bg-green-600 hover:bg-green-400 w-full md:w-auto px-4 py-2 rounded-lg transition"
           >
             Adicionar
           </button>
         )}
       </div>
 
+      {/* LIST */}
       <div className="space-y-3">
         {teams.length === 0 && (
           <p className="text-zinc-400">Nenhum time adicionado.</p>
@@ -126,7 +124,7 @@ export default function TeamsSection({
         {teams.map((team) => (
           <div
             key={team.id}
-            className="flex items-center justify-between bg-zinc-800 px-4 py-3 rounded-xl"
+            className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-zinc-800 px-4 py-3 rounded-xl"
           >
             <span className="font-medium">{team.name}</span>
 
@@ -135,7 +133,7 @@ export default function TeamsSection({
                 onClick={() =>
                   setConfirmRemove({ championshipTeamId: team.id })
                 }
-                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition"
+                className="bg-red-600 hover:bg-red-400 px-4 py-1.5 rounded-lg text-sm transition w-full md:w-auto"
               >
                 Remover
               </button>
@@ -143,26 +141,28 @@ export default function TeamsSection({
           </div>
         ))}
       </div>
+
+      {/* MODAL */}
       {confirmRemove && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 rounded-2xl p-6 w-[380px] space-y-4">
+          <div className="bg-zinc-900 rounded-2xl p-6 w-full max-w-md mx-4 space-y-4">
             <h3 className="text-lg font-semibold">Confirmar remoção</h3>
 
             <p className="text-sm text-zinc-400">
               Tem certeza que deseja remover este time do campeonato?
             </p>
 
-            <div className="flex justify-end gap-3 pt-3">
+            <div className="flex flex-col md:flex-row justify-end gap-3 pt-3">
               <button
                 onClick={() => setConfirmRemove(null)}
-                className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition"
+                className="bg-zinc-700 hover:bg-zinc-400 px-4 py-2 rounded-lg text-sm transition w-full md:w-auto"
               >
                 Cancelar
               </button>
 
               <button
                 onClick={() => removeTeam(confirmRemove.championshipTeamId)}
-                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition"
+                className="bg-red-600 hover:bg-red-400 px-4 py-2 rounded-lg text-sm transition w-full md:w-auto"
               >
                 Remover
               </button>
