@@ -7,7 +7,7 @@ import { recalculateOverall } from "@/lib/overall";
 import { useLoading } from "@/components/ui/loading-provider";
 import { toast } from "sonner";
 import { skill_labels } from "@/lib/skills";
-import { Registration } from "@/types/registration";
+import { Registration, RegistrationWithPlayer } from "@/types/registration";
 import { Player } from "@/types/player";
 
 const skillsLinha = [
@@ -33,12 +33,12 @@ export default function EvaluateModal({
   onClose,
   onEvaluated,
 }: {
-  registration: Registration;
+  registration: RegistrationWithPlayer;
   onClose: () => void;
   onEvaluated: (registrationId: string) => void;
 }) {
   const supabase = createClient();
-  const player = registration.players as Player;
+  const player = registration.player as Player;
 
   const { startLoading, stopLoading } = useLoading();
 

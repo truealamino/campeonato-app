@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import TeamsSection from "./TeamsSection";
 import PlayersSection from "./PlayersSection";
 import { getUserRole } from "@/lib/auth";
+import { RegistrationWithPlayer } from "@/types/registration";
+import { ChampionshipTeamWithTeam } from "@/types/championship-team";
+import { mapChampionshipTeam } from "@/mappers/championship-team.mapper";
 
 export const dynamic = "force-dynamic";
 
@@ -29,28 +32,16 @@ export default async function ChampionshipDetails({
     .select(
       `
       id,
-      teams (
+      team: teams (
         id,
         name
       )
     `,
     )
     .eq("championship_id", id)
-    .returns<
-      {
-        id: string;
-        teams: {
-          id: string;
-          name: string;
-        };
-      }[]
-    >();
+    .returns<ChampionshipTeamWithTeam[]>();
 
-  const formattedTeams =
-    teams?.map((ct) => ({
-      id: ct.id,
-      name: ct.teams?.name || "",
-    })) || [];
+  const formattedTeams = teams?.map(mapChampionshipTeam) || [];
 
   const { data: registrations } = await supabase
     .from("championship_registrations")
@@ -58,7 +49,7 @@ export default async function ChampionshipDetails({
       `
       id,
       final_overall,
-      players!inner (
+      player:players!inner (
         id,
         name,
         preferred_position
@@ -66,13 +57,11 @@ export default async function ChampionshipDetails({
     `,
     )
     .eq("championship_id", id)
-    .returns<
-      {
-        id: string;
-        final_overall: number;
-        players: { id: string; name: string; preferred_position: string };
-      }[]
-    >();
+    .returns<RegistrationWithPlayer[]>();
+
+  const sortedRegistrations = (registrations || []).sort((a, b) =>
+    a.player.name.localeCompare(b.player.name, "pt-BR"),
+  );
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-10 space-y-8 md:space-y-10">
@@ -98,7 +87,7 @@ export default async function ChampionshipDetails({
 
       {/* JOGADORES */}
       <PlayersSection
-        registrations={registrations || []}
+        registrations={sortedRegistrations || []}
         role={role as string}
       />
     </div>

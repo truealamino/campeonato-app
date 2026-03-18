@@ -7,13 +7,13 @@ import EvaluateModal from "../../players/components/EvaluateModal";
 import PlayerRadarModal from "../../players/components/PlayerRadarModal";
 import { toast } from "sonner";
 import { useLoading } from "@/components/ui/loading-provider";
-import { Registration } from "@/types/registration";
+import { RegistrationWithPlayer } from "@/types/registration";
 
 export default function PlayersSection({
   registrations,
   role,
 }: {
-  registrations: Registration[];
+  registrations: RegistrationWithPlayer[];
   role: string;
 }) {
   const router = useRouter();
@@ -22,11 +22,14 @@ export default function PlayersSection({
   const { startLoading, stopLoading } = useLoading();
 
   const [selectedRegistration, setSelectedRegistration] =
-    useState<Registration | null>(null);
+    useState<RegistrationWithPlayer | null>(null);
 
-  const [radarPlayer, setRadarPlayer] = useState<Registration | null>(null);
+  const [radarPlayer, setRadarPlayer] = useState<RegistrationWithPlayer | null>(
+    null,
+  );
 
-  const [confirmRemove, setConfirmRemove] = useState<Registration | null>(null);
+  const [confirmRemove, setConfirmRemove] =
+    useState<RegistrationWithPlayer | null>(null);
 
   const [evaluatedRegistrations, setEvaluatedRegistrations] = useState<
     string[]
@@ -141,7 +144,7 @@ export default function PlayersSection({
       {/* LIST */}
       <div className="space-y-3">
         {paginatedRegistrations.map((reg) => {
-          const player = reg.players;
+          const player = reg.player;
 
           return (
             <div
@@ -149,10 +152,10 @@ export default function PlayersSection({
               className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-zinc-800 px-4 py-3 rounded-xl"
             >
               <div>
-                <p className="font-semibold">{player?.name}</p>
+                <p className="font-semibold">{player.name}</p>
 
                 <p className="text-sm text-zinc-400">
-                  {player?.preferred_position}
+                  {player.preferred_position}
                 </p>
               </div>
 
@@ -160,7 +163,7 @@ export default function PlayersSection({
                 {evaluatedRegistrations.includes(reg.id) && (
                   <button
                     onClick={() => setRadarPlayer(reg)}
-                    className="bg-blue-600 hover:bg-blue-400 px-4 py-1.5 rounded-lg text-sm"
+                    className="bg-blue-600 hover:bg-blue-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm"
                   >
                     Análise
                   </button>
@@ -169,7 +172,7 @@ export default function PlayersSection({
                 {!evaluatedRegistrations.includes(reg.id) && (
                   <button
                     onClick={() => setSelectedRegistration(reg)}
-                    className="bg-zinc-700 hover:bg-zinc-400 px-4 py-1.5 rounded-lg text-sm"
+                    className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm"
                   >
                     Avaliar
                   </button>
@@ -178,7 +181,7 @@ export default function PlayersSection({
                 {role === "admin" && (
                   <button
                     onClick={() => setConfirmRemove(reg)}
-                    className="bg-red-600 hover:bg-red-400 px-4 py-1.5 rounded-lg text-sm"
+                    className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm"
                   >
                     Remover
                   </button>
@@ -195,7 +198,7 @@ export default function PlayersSection({
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="bg-zinc-800 hover:bg-zinc-400 px-3 py-1.5 rounded-lg text-sm"
+            className="bg-zinc-800 hover:bg-zinc-400 cursor-pointer px-3 py-1.5 rounded-lg text-sm"
           >
             ←
           </button>
@@ -207,7 +210,7 @@ export default function PlayersSection({
           <button
             disabled={page === totalPages}
             onClick={() => setPage(page + 1)}
-            className="bg-zinc-800 hover:bg-zinc-400 px-3 py-1.5 rounded-lg text-sm"
+            className="bg-zinc-800 hover:bg-zinc-400 cursor-pointer px-3 py-1.5 rounded-lg text-sm"
           >
             →
           </button>
@@ -227,14 +230,14 @@ export default function PlayersSection({
             <div className="flex flex-col md:flex-row justify-end gap-3">
               <button
                 onClick={() => setConfirmRemove(null)}
-                className="bg-zinc-700 hover:bg-zinc-400 px-4 py-2 rounded-lg text-sm w-full md:w-auto"
+                className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg text-sm w-full md:w-auto"
               >
                 Cancelar
               </button>
 
               <button
                 onClick={() => removePlayer(confirmRemove.id)}
-                className="bg-red-600 hover:bg-red-400 px-4 py-2 rounded-lg text-sm w-full md:w-auto"
+                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-2 rounded-lg text-sm w-full md:w-auto"
               >
                 Remover
               </button>
@@ -254,12 +257,12 @@ export default function PlayersSection({
         />
       )}
 
-      {radarPlayer && radarPlayer.players && (
+      {radarPlayer && radarPlayer.player && (
         <PlayerRadarModal
           registrationId={radarPlayer.id}
-          playerName={radarPlayer.players.name}
-          position={radarPlayer.players.preferred_position}
-          overall={radarPlayer.final_overall}
+          playerName={radarPlayer.player.name}
+          position={radarPlayer.player.preferred_position}
+          overall={radarPlayer.final_overall || 0}
           onClose={() => setRadarPlayer(null)}
         />
       )}

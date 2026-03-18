@@ -108,7 +108,7 @@ export default function TeamsSection({
         {role === "admin" && (
           <button
             onClick={addTeam}
-            className="bg-green-600 hover:bg-green-400 w-full md:w-auto px-4 py-2 rounded-lg transition"
+            className="bg-green-600 hover:bg-green-400 cursor-pointer w-full md:w-auto px-4 py-2 rounded-lg transition"
           >
             Adicionar
           </button>
@@ -133,7 +133,7 @@ export default function TeamsSection({
                 onClick={() =>
                   setConfirmRemove({ championshipTeamId: team.id })
                 }
-                className="bg-red-600 hover:bg-red-400 px-4 py-1.5 rounded-lg text-sm transition w-full md:w-auto"
+                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-1.5 rounded-lg text-sm transition w-full md:w-auto"
               >
                 Remover
               </button>
@@ -155,14 +155,14 @@ export default function TeamsSection({
             <div className="flex flex-col md:flex-row justify-end gap-3 pt-3">
               <button
                 onClick={() => setConfirmRemove(null)}
-                className="bg-zinc-700 hover:bg-zinc-400 px-4 py-2 rounded-lg text-sm transition w-full md:w-auto"
+                className="bg-zinc-700 hover:bg-zinc-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition w-full md:w-auto"
               >
                 Cancelar
               </button>
 
               <button
                 onClick={() => removeTeam(confirmRemove.championshipTeamId)}
-                className="bg-red-600 hover:bg-red-400 px-4 py-2 rounded-lg text-sm transition w-full md:w-auto"
+                className="bg-red-600 hover:bg-red-400 cursor-pointer px-4 py-2 rounded-lg text-sm transition w-full md:w-auto"
               >
                 Remover
               </button>

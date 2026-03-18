@@ -2,17 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import EditPlayerForm from "./EditPlayerForm";
 import PlayerChampionshipList from "./PlayerChampionshipList";
+import { RegistrationWithChampionship } from "@/types/registration";
+import { PlayerChampionship } from "@/types/view-models/player-championship";
 
 export const dynamic = "force-dynamic";
-
-type Registration = {
-  id: string;
-  final_overall: number | null;
-  championships: {
-    id: string;
-    name: string;
-  };
-};
 
 export default async function PlayerDetailsPage({
   params,
@@ -44,15 +37,13 @@ export default async function PlayerDetailsPage({
   `,
     )
     .eq("player_id", id)
-    .returns<Registration[]>();
+    .returns<RegistrationWithChampionship[]>();
 
-  console.log(registrations);
-
-  const championships =
+  const championships: PlayerChampionship[] =
     registrations?.map((item) => ({
-      id: item.championships?.id,
-      name: item.championships?.name,
-      overall: item.final_overall || 0,
+      id: item.championships?.id ?? "",
+      name: item.championships?.name ?? "",
+      overall: item.final_overall ?? 0,
     })) || [];
 
   return (
