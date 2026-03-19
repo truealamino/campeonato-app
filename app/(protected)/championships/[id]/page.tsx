@@ -87,6 +87,7 @@ export default async function ChampionshipDetails({
 
       {/* JOGADORES */}
       <PlayersSection
+        championshipId={id}
         registrations={sortedRegistrations || []}
         role={role as string}
       />

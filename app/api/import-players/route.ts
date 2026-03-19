@@ -118,7 +118,22 @@ export async function POST(req: Request) {
       .eq("player_id", playerId)
       .maybeSingle();
 
-    if (registration) continue;
+    if (registration) {
+      // 🔄 UPDATE registro existente
+      const { error: updateError } = await supabase
+        .from("championship_registrations")
+        .update({
+          legal_authorization_link: row["Autorização do Responsável Legal"],
+          profile_photo_link: row["Foto de Perfil (3x4)"],
+        })
+        .eq("id", registration.id);
+
+      if (updateError) {
+        console.error("Erro ao atualizar registro:", updateError);
+      }
+
+      continue;
+    }
 
     const { data: newRegistration } = await supabase
       .from("championship_registrations")
