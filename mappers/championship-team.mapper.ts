@@ -7,5 +7,6 @@ export function mapChampionshipTeam(
   return {
     id: data.id,
     name: data.team.name,
+    logo_url: data.team.logo_url,
   };
 }

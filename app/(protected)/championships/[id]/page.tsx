@@ -34,7 +34,8 @@ export default async function ChampionshipDetails({
       id,
       team: teams (
         id,
-        name
+        name,
+        logo_url
       )
     `,
     )

@@ -12,7 +12,7 @@ export default function TeamsSection({
   role,
 }: {
   championshipId: string;
-  teams: { id: string; name: string }[];
+  teams: { id: string; name: string; logo_url?: string }[];
   role: string;
 }) {
   const router = useRouter();
@@ -126,7 +126,19 @@ export default function TeamsSection({
             key={team.id}
             className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-zinc-800 px-4 py-3 rounded-xl"
           >
-            <span className="font-medium">{team.name}</span>
+            <div className="flex items-center gap-3">
+              {team.logo_url ? (
+                <img
+                  src={team.logo_url}
+                  alt={team.name}
+                  className="w-10 h-10 object-cover rounded-full border border-zinc-600"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-zinc-700 rounded-full" />
+              )}
+
+              <span className="font-medium">{team.name}</span>
+            </div>
 
             {role === "admin" && (
               <button
