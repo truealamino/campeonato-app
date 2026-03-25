@@ -8,6 +8,13 @@ import PlayerRadarModal from "../../players/components/PlayerRadarModal";
 import { toast } from "sonner";
 import { useLoading } from "@/components/ui/loading-provider";
 import { RegistrationWithPlayer } from "@/types/registration";
+import { Player } from "@/types/player";
+
+type ChampionshipPlayer = {
+  id: string;
+  final_overall: number | null;
+  player: Player;
+};
 
 export default function PlayersSection({
   championshipId,
@@ -15,7 +22,7 @@ export default function PlayersSection({
   role,
 }: {
   championshipId: string;
-  registrations: RegistrationWithPlayer[];
+  registrations: ChampionshipPlayer[];
   role: string;
 }) {
   const router = useRouter();
@@ -25,14 +32,15 @@ export default function PlayersSection({
   const { startLoading, stopLoading } = useLoading();
 
   const [selectedRegistration, setSelectedRegistration] =
-    useState<RegistrationWithPlayer | null>(null);
+    useState<ChampionshipPlayer | null>(null);
 
-  const [radarPlayer, setRadarPlayer] = useState<RegistrationWithPlayer | null>(
+  const [radarPlayer, setRadarPlayer] = useState<ChampionshipPlayer | null>(
     null,
   );
 
-  const [confirmRemove, setConfirmRemove] =
-    useState<RegistrationWithPlayer | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<ChampionshipPlayer | null>(
+    null,
+  );
 
   const [evaluatedRegistrations, setEvaluatedRegistrations] = useState<
     string[]

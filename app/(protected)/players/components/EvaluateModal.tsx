@@ -28,12 +28,18 @@ const skillsGol = [
   "agilidade",
 ];
 
+type ChampionshipPlayer = {
+  id: string;
+  final_overall: number | null;
+  player: Player;
+};
+
 export default function EvaluateModal({
   registration,
   onClose,
   onEvaluated,
 }: {
-  registration: RegistrationWithPlayer;
+  registration: ChampionshipPlayer;
   onClose: () => void;
   onEvaluated: (registrationId: string) => void;
 }) {

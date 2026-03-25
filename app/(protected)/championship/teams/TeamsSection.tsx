@@ -32,14 +32,14 @@ export default function TeamsSection({
       if (!all) return;
 
       const available = all.filter(
-        (team) => !teams.some((t) => t.name === team.name),
+        (team) => !teams.some((t) => t.id === team.id),
       );
 
       setAllTeams(available);
     }
 
     loadTeams();
-  }, [teams]);
+  }, [teams.length]); // 🔥 evita loop
 
   async function addTeam() {
     startLoading();
@@ -86,7 +86,7 @@ export default function TeamsSection({
   }
 
   return (
-    <div className="bg-zinc-900 p-4 md:p-6 rounded-2xl space-y-6">
+    <div className="bg-zinc-900 p-6 rounded-2xl space-y-6 h-full shadow-lg">
       <h2 className="text-xl md:text-2xl font-bold">Times</h2>
 
       {/* ADD TEAM */}
