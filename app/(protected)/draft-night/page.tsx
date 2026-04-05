@@ -68,9 +68,7 @@ export default function DraftNightPage() {
     async function init() {
       if (!championship?.id) return;
 
-      const championshipId = championship.id;
-
-      const potsData = await loadPots(championshipId);
+      const potsData = await loadPots(championship.id);
 
       if (isMounted && potsData) {
         setPots(potsData);
