@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import StarRating from "../[id]/subscribe/StarRating";
 import { recalculateOverall } from "@/lib/overall";
 import { useLoading } from "@/components/ui/loading-provider";
 import { toast } from "sonner";
 import { skill_labels } from "@/lib/skills";
-import { Registration, RegistrationWithPlayer } from "@/types/registration";
 import { Player } from "@/types/player";
 
 const skillsLinha = [
@@ -28,12 +28,18 @@ const skillsGol = [
   "agilidade",
 ];
 
+type ChampionshipPlayer = {
+  id: string;
+  final_overall: number | null;
+  player: Player;
+};
+
 export default function EvaluateModal({
   registration,
   onClose,
   onEvaluated,
 }: {
-  registration: RegistrationWithPlayer;
+  registration: ChampionshipPlayer;
   onClose: () => void;
   onEvaluated: (registrationId: string) => void;
 }) {
@@ -110,11 +116,14 @@ export default function EvaluateModal({
         {/* FOTO */}
         <div className="flex flex-col items-center gap-4">
           {photo ? (
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-zinc-800 border-4 border-zinc-700 flex items-center justify-center overflow-hidden">
-              <img
+            <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-zinc-800 border-4 border-zinc-700 overflow-hidden">
+              <Image
                 src={photo}
                 alt="Foto jogador"
-                className="max-w-full max-h-full object-contain"
+                fill
+                unoptimized
+                className="object-contain"
+                sizes="(max-width: 768px) 96px, 128px"
               />
             </div>
           ) : (

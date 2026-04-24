@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import PlayerRadar from "@/components/PlayerRadar";
 import { calculateRadar } from "@/lib/calculateRadar";
@@ -92,10 +93,14 @@ export default function PlayerRadarModal({
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             {photo ? (
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center overflow-hidden">
-                <img
+              <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-zinc-800 border-2 border-zinc-700 overflow-hidden">
+                <Image
                   src={photo}
-                  className="max-w-full max-h-full object-contain"
+                  alt={playerName}
+                  fill
+                  unoptimized
+                  className="object-contain"
+                  sizes="(max-width: 768px) 64px, 80px"
                 />
               </div>
             ) : (
@@ -110,7 +115,7 @@ export default function PlayerRadarModal({
             </div>
           </div>
 
-          {currentOverall && (
+          {currentOverall != null && (
             <div className="text-left md:text-right">
               <div className="text-3xl md:text-4xl font-bold text-blue-400 bg-blue-500/10 px-3 py-1 rounded-lg inline-block">
                 {currentOverall}
